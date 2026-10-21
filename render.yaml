@@ -9,6 +9,8 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9
+      - key: PYTHONPATH
+        value: /opt/render/project/src
       - key: MONGODB_URI
         value: mongodb+srv://Divyansh:Divyansh@portfolio.9nzqdw8.mongodb.net/
       - key: MONGODB_DB_NAME
