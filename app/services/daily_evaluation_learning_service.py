@@ -4,10 +4,24 @@ import logging
 import uuid
 from typing import Dict, Any, List, Optional
 
+import os
+import sys
+from pathlib import Path
+
+# Ensure project root is in sys.path
+PROJECT_ROOT = str(Path(__file__).resolve().parent.parent.parent)
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
 from app.db.database import DatabaseManager
 from app.core.agent_config import AgentConfigManager
-from evals.evaluator import OfflineBenchmarkEvaluator
-from evals.candidate_evaluator import CandidateEvaluationManager
+
+try:
+    from evals.evaluator import OfflineBenchmarkEvaluator
+    from evals.candidate_evaluator import CandidateEvaluationManager
+except ImportError:
+    OfflineBenchmarkEvaluator = None
+    CandidateEvaluationManager = None
 
 logger = logging.getLogger("neerai.pipeline.evaluation")
 
@@ -23,8 +37,8 @@ class DailyEvaluationLearningService:
     def __init__(self):
         self.db = DatabaseManager()
         self.config_manager = AgentConfigManager()
-        self.evaluator = OfflineBenchmarkEvaluator()
-        self.candidate_manager = CandidateEvaluationManager()
+        self.evaluator = OfflineBenchmarkEvaluator() if OfflineBenchmarkEvaluator else None
+        self.candidate_manager = CandidateEvaluationManager() if CandidateEvaluationManager else None
 
     async def run_daily_evaluation(self, trigger_type: str = "SCHEDULED") -> Dict[str, Any]:
         """
@@ -34,6 +48,10 @@ class DailyEvaluationLearningService:
         logger.info(f"Starting daily evaluation benchmark run: {eval_id}")
 
         try:
+            if not self.evaluator:
+                logger.warning("OfflineBenchmarkEvaluator unavailable, skipping benchmark.")
+                return {"eval_run_id": eval_id, "status": "SKIPPED", "message": "Evaluator suite not initialized."}
+
             # 1. Run full offline benchmark
             results = await self.evaluator.run_full_benchmark()
             metrics = results.get("metrics", {})
