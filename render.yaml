@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: neerai-marine-api
+    env: python
+    region: singapore
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT --proxy-headers
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: MONGODB_URI
+        value: mongodb+srv://Divyansh:Divyansh@portfolio.9nzqdw8.mongodb.net/
+      - key: MONGODB_DB_NAME
+        value: neerai_db
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: ENVIRONMENT
+        value: production
