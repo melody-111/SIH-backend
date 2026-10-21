@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: neerai-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_ENV=production
+      - CORS_ORIGINS=*
+      - DATABASE_PATH=app/data/neerai.db
+      - CONNECTOR_TIMEOUT_SECONDS=6.0
+      - CONNECTOR_MAX_RETRIES=2
+      - NOTIFICATION_SANDBOX_MODE=true
+    env_file:
+      - path: .env
+        required: false
+    volumes:
+      - neerai_data:/app/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  neerai_data:
+    driver: local

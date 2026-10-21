@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  backend-staging:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: neerai-backend-staging
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_ENV=staging
+      - CORS_ORIGINS=https://staging.neerai.internal,exp://*
+      - DATABASE_PATH=app/data/neerai_staging.db
+      - CONNECTOR_TIMEOUT_SECONDS=6.0
+      - CONNECTOR_MAX_RETRIES=2
+      - NOTIFICATION_SANDBOX_MODE=true
+      - ENABLE_SIMULATION_FALLBACK=false
+      - REQUIRE_REAL_DATA=true
+      - LOG_LEVEL=INFO
+    env_file:
+      - path: .env.staging
+        required: false
+      - path: .env
+        required: false
+    volumes:
+      - neerai_staging_data:/app/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health/ready", "||", "exit", "1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+volumes:
+  neerai_staging_data:
+    driver: local
